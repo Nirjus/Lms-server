@@ -8,6 +8,7 @@ import { errorMiddleware } from "./middleware/error";
 import { frontendUrl } from "./secret/secret";
 import userRouter from "./Routes/userRoute";
 import userAuthRouter from "./Routes/userAuthRoute";
+import courseRouter from "./Routes/course.route";
 
 //body parser 
 app.use(express.json({ limit: "50mb" }));
@@ -23,6 +24,7 @@ app.use(cors({
 //  routes
 app.use("/api/v1/user",userRouter);
 app.use("/api/v1/auth",userAuthRouter);
+app.use("/api/v1/course",courseRouter);
 
 // testing api root
 app.get("/test", (req: Request, res: Response) => {

@@ -1,11 +1,11 @@
 import { Express,Request,Response,NextFunction } from "express";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import User, { IUser } from "../model/userModel";
 import ejs from 'ejs';
 import ErrorHandler from "../utils/errorHandeler";
 import { catchAsyncError } from "../middleware/catchAsyncError";
 import createJWT_token from "../helper/jsonwebtoken";
-import { jwtActivationKey } from "../secret/secret";
+import { frontendUrl, jwtActivationKey, jwtResetPassKey } from "../secret/secret";
 import { sendMail } from "../helper/sendEmail";
 import path from "path";
 import { CustomRequest } from "../@types/custom";
@@ -207,4 +207,77 @@ export const updatePassword = async (req: Request, res: Response, next: NextFunc
         return next(new ErrorHandler(error.message,400));
     }
 }
-// update profile
+
+interface IForgetPassword{
+ email: string;
+}
+export const forgetPassword = async (req: Request, res: Response, next: NextFunction) => {
+
+    try {
+        const {email} = req.body as IForgetPassword;
+
+        const user = await User.findOne({email: email}).select("+password");
+    
+        if(!user){
+            return next(new ErrorHandler("user not exists with this email",500));
+        }
+        if(user.password === undefined){
+            return next(new ErrorHandler("Invalid email",500));
+        }
+        const forgetToken = createJWT_token("2m",user,jwtResetPassKey);
+        const token = forgetToken.token;
+        const data = {frontendUrl,token};
+        const html:string = await ejs.renderFile(path.join(__dirname,"../mails/reset-password.ejs"),data);
+        const emailData = {
+            email: user.email,
+            subject: "Forgot Password mail",
+            html: html,
+           };
+        await sendMail(emailData);
+
+        res.status(200).json({
+            success: true,
+            message: `please go to your Email: ${user.email} to reset your password`,
+            token,
+        })
+    } catch (error: any) {
+        return next(new ErrorHandler(error.message,400));
+    }
+}
+
+// reset Password
+interface IResetPassword{
+    token: string;
+    newPassword:string;
+}
+export const resetPassoword = async (req: Request, res: Response, next: NextFunction) => {
+
+    try {
+        const {token, newPassword} = req.body as IResetPassword;
+
+        const decoded = jwt.verify(token, jwtResetPassKey) as JwtPayload;
+
+        if(!decoded){
+            return next(new ErrorHandler("Invalid token",500));
+        }
+        const updates = await User.findOneAndUpdate(
+            {email:decoded.user.email},
+            {password: newPassword},
+            {new: true}
+        )
+         
+    if(!updates){
+        return next(new ErrorHandler("password not updated",500));
+    }
+   
+    await redis.set(decoded.user._id, JSON.stringify(decoded.user));
+    res.status(201).json({
+        success: true,
+        message: "Password updated successfully",
+        updates
+    })
+
+    } catch (error: any) {
+        return next(new ErrorHandler(error.message,400));
+    }
+}

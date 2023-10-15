@@ -8,13 +8,15 @@ export const port = process.env.PORT || 6000;
 
 export const mongoUri = process.env.MONGO_URI || "mongodb://localhost:27017/lms";
 
-export const frontendUrl = process.env.MONGO_URI || "http://localhost:3000";
+export const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
 
 export const nodeENV = process.env.NODE_ENV || "";
 
 export const redisUrl = process.env.REDIS_URL || "";
 
 export const jwtActivationKey = process.env.JWT_ACTIVATION_KEY || "sgsfgMGH354786453^%$#@#%hgfjsdfs52343MNGFD%$^&";
+
+export const jwtResetPassKey = process.env.JWT_REST_PASS_KEY || "FHGjghcf534HGfxg$%#%$cfgdh^%#354";
 
 export const smtpUserName = process.env.SMTP_USERNAME || "";
 
