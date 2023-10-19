@@ -1,16 +1,17 @@
 import mongoose,{Document,Model, Schema} from "mongoose";
+import { IUser } from "./userModel";
 
 interface IComment extends Document{
-    user: object,
-    comment: string,
-    commentReplies?: IComment[],
+    user: IUser,
+    question: string,
+    questionReplies?: IComment[],
 }
 
 interface IReview extends Document{
-    user:object,
+    user:IUser,
     rating: number,
     comment: string,
-    commentReplies: IComment[],
+    commentReplies?: IComment[],
 }
 
 interface ILink extends Document{
@@ -55,6 +56,7 @@ const reviewSchema: Schema<IReview> = new mongoose.Schema({
     default: 0,
    },
    comment: String,
+   commentReplies: [Object],
 })
 
 const linkSchema: Schema<ILink> = new mongoose.Schema({
@@ -64,12 +66,13 @@ const linkSchema: Schema<ILink> = new mongoose.Schema({
 
 const commentsSchema = new Schema<IComment>({
     user: Object,
-    comment: String,
-    commentReplies: [Object],
+    question: String,
+    questionReplies: [Object],
 })
 
 const courseDataSchema = new Schema<ICourseData>({
     videoUrl: String,
+    videoThumbnail: Object,
     title: String,
     videoSection: String,
     description: String,

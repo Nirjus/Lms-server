@@ -2,7 +2,7 @@ import express, { NextFunction, Request, Response } from "express";
 export const app = express();
 
 import cors from "cors";
-
+import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import { errorMiddleware } from "./middleware/error";
 import { frontendUrl } from "./secret/secret";
@@ -20,7 +20,7 @@ app.use(cookieParser());
 app.use(cors({
     origin: frontendUrl,
 }))
-
+app.use(morgan("dev"))
 //  routes
 app.use("/api/v1/user",userRouter);
 app.use("/api/v1/auth",userAuthRouter);
