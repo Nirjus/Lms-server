@@ -17,3 +17,13 @@ export const getUserById = async (id:string, res:Response) => {
 
 
 }
+//  get all users --> Admin
+export const AllUsers = async (res: Response) => {
+    const users = await User.find().sort({createdAt: -1});
+
+    res.status(201).json({
+        success: true,
+        message: "All users return successfully",
+        users,
+    })
+}

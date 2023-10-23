@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALASKA e-larning</title>
+    <style>
+        /* Global Styles */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 0;
+            font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+        }
+        .container {
+            max-width: 600px;
+            height:auto;
+            display: block;
+            margin: 0 auto;
+            padding: 20px;
+            background-color:#ff1a6a;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+       
+        /* Header Styles */
+        .header {
+            background-color: #ff1a6a;
+            padding: 20px 0;
+            text-align: center;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+          .header > h1{
+            color: white;
+          }
+          .header > h4{
+            color: white;
+            text-decoration: underline;
+          }
+        /* Button Styles */
+        .content{
+         width: 500px;
+         margin: auto;
+          background-color: #232323;
+          border-radius: 10px;
+        }
+        .h4-heading{
+    margin: auto;
+    border-radius: 5px;
+    padding: 2px;
+    color: #f61c7a;
+            text-transform: uppercase;
+            background-color: rgb(255, 170, 196);
+            width: max-content;
+        }
+        table{
+            color: white;
+            width: 90%;
+            margin: auto;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            font-size: 12px;
+            text-align: center;
+        }
+     tr{
+        background-color:#2b2b2b;
+     }
+     td,th{
+        padding: 2px;
+     }
+     .item > th{
+        font-size: 15px;
+        color: #d2f0f3;
+     }
+        /* Footer Styles */
+        .footer {
+            background-color:#ff1a6a;
+            padding: 20px 0;
+            text-align: center;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+        .footer > p{
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 400;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>ALASKA! </h1>
+            <h1>Your Order is confirmed.</h1>
+            <h4>Onestop e-learning platform.</h4>
+        </div>
+        <div class="content" style="padding: 20px;">
+           <h4 class="h4-heading">Here's what your order: </h4>
+         
+           <table >
+            <tr >
+                <th>Order : #<%=order._id%></th>
+                <th colspan="2">Order Date : <%= order.date%></th>
+            </tr>
+            <div class="bottom-border"></div>
+            <tr class="item">
+                <th>Item</th>
+                <th>Qty</th>
+                <th>Cost</th>
+            </tr>
+            
+            <tr>
+                <td><%=order.name%></td>
+                <td>1</td>
+                <td><%=order.price%></td>
+            </tr>
+            <tr>
+                <td>Sub total: </td>
+                <td colspan="2">$<%=order.price%></td>
+            </tr>
+            <tr>
+                <td>Total: </td>
+                <td colspan="2">$<%=order.price%></td>
+            </tr>
+           </table>
+        </div>
+        <div class="footer">
+            <p>Best regards,<br>Our Website Team</p>
+            <p>If you have any quary please contact us <a href="karmakarnirjus4839@gmail.com">karmakarnirjus4839@gmail.com</a></p>
+        </div>
+    </div>
+</body>
+</html>

@@ -30,11 +30,13 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^7.5.3",
     "morgan": "^1.10.0",
+    "node-cron": "^3.0.2",
     "nodemailer": "^6.9.5",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.2.2"
   },
   "devDependencies": {
-    "@types/morgan": "^1.9.7"
+    "@types/morgan": "^1.9.7",
+    "@types/node-cron": "^3.0.10"
   }
 }

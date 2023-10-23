@@ -9,7 +9,7 @@ import { frontendUrl, jwtActivationKey, jwtResetPassKey } from "../secret/secret
 import { sendMail } from "../helper/sendEmail";
 import path from "path";
 import { CustomRequest } from "../@types/custom";
-import { getUserById } from "../services/userService";
+import { AllUsers, getUserById } from "../services/userService";
 import { redis } from "../utils/redis";
 import bcrypt from "bcryptjs";
 import cloudinary from "cloudinary";
@@ -279,5 +279,55 @@ export const resetPassoword = async (req: Request, res: Response, next: NextFunc
 
     } catch (error: any) {
         return next(new ErrorHandler(error.message,400));
+    }
+}
+//  get all users only for --> Admin
+export const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await AllUsers(res);
+    } catch (error: any) {
+        return next(new ErrorHandler(error.message,500));
+    }
+}
+//  update user --Role --> admin
+interface IUpdateRole{
+    id: string,
+    role: string,
+}
+export const updateUserRole = async (req: Request, res: Response, next: NextFunction) => {
+
+    try {
+        const {id, role} = req.body as IUpdateRole;
+        const user = await User.findByIdAndUpdate(id,{role:role},{new: true});
+        if(!user){
+            return next(new ErrorHandler("User not found with this Id",400));
+        }
+
+        res.status(201).json({
+            success: true,
+            message: "User Role Update successfully",
+            user
+        })
+    } catch (error: any) {
+        return next(new ErrorHandler(error.message,500))
+    }
+}
+//  delete user --Admin
+export const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const {id} = req.params;
+         const user = await User.findById(id);
+         if(!user){
+            return next(new ErrorHandler("user not found with this Id",400));
+         }
+         await user.deleteOne({id});
+         await redis.del(id);
+
+         res.status(200).json({
+            success: true,
+            message: "User deleted successfully",
+         })
+    } catch (error: any) {
+        return next(new ErrorHandler(error.message,500));
     }
 }
