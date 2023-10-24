@@ -1,5 +1,6 @@
 import mongoose,{Document,Model, Schema} from "mongoose";
 import { IUser } from "./userModel";
+import { timeStamp } from "console";
 
 interface IComment extends Document{
     user: IUser,
@@ -131,7 +132,7 @@ const courseSchema: Schema<Icourse> = new mongoose.Schema({
         type: Number,
         default: 0,
     }
-})
+},{timestamps: true})
 
 const Course: Model<Icourse> = mongoose.model("Course", courseSchema);
 

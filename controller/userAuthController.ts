@@ -120,7 +120,7 @@ export const updateAccessToken = async (req: Request, res: Response, next:NextFu
         }
         const session = await redis.get(decoded.user._id);
         if(!session){
-            return next(new ErrorHandler("User not found", 400));
+            return next(new ErrorHandler("Please login to access this resource", 400));
         }
         const user = JSON.parse(session);
 
@@ -132,6 +132,8 @@ export const updateAccessToken = async (req: Request, res: Response, next:NextFu
 
         res.cookie("access_token", accessToken, accessTokenOptions);
         res.cookie("refresh_token", refreshToken, refreshTokenOptions);
+
+        await redis.set(user._id ,JSON.stringify(user), "EX", 604800); // 7 day
 
        res.status(200).json({
         success: true,
