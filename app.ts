@@ -22,7 +22,8 @@ app.use(cookieParser());
 
 // cors
 app.use(cors({
-    origin: frontendUrl,
+    origin: [frontendUrl],
+    credentials: true,
 }))
 app.use(morgan("dev"))
 //  routes

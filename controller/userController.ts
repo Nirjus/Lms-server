@@ -99,7 +99,7 @@ export const activateUser = async (req:Request, res:Response, next:NextFunction)
     
        res.status(201).json({
         success: true,
-        message:"User created successfully",
+        message:"User activated successfully",
         user
        })
     
