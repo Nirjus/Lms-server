@@ -1,9 +1,9 @@
 import express,{Request, Response, NextFunction} from "express";
 import ErrorHandler from "../utils/errorHandeler";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { accessKey } from "../secret/secret";
 import { redis } from "../utils/redis";
 import { CustomRequest } from "../@types/custom";
+import { updateAccessToken } from "../controller/userAuthController";
 //  authenticated user
 export const isLogin = async (req: Request, res: Response, next: NextFunction) => {
 
@@ -11,23 +11,28 @@ export const isLogin = async (req: Request, res: Response, next: NextFunction) =
         const token = req.cookies.access_token;
 
         if(!token){
-            return next(new ErrorHandler("Plase log In to access this resources", 400));
-        }
+            try {
+                await updateAccessToken(req,res,next);
+            } catch (error) {
+                next(error);
+            }
+        }else{
       
-        const decoded = jwt.verify(token.token,accessKey) as JwtPayload;
+        const decoded = jwt.decode(token.token) as JwtPayload;
       
-       
         if(!decoded){
             return next(new ErrorHandler("You are not a authorised user", 400));
         }
-        const user = await redis.get(decoded.user._id);
+            const user = await redis.get(decoded.user._id);
         
-        if(!user){
-            return next(new ErrorHandler("User not found", 400));
+            if(!user){
+                return next(new ErrorHandler("User not found", 400));
+            }
+            (req as CustomRequest).user = JSON.parse(user);
+            
+            next();
         }
-        (req as CustomRequest).user = JSON.parse(user);
         
-        next();
     } catch (error:any) {
         return next(new ErrorHandler(error.message,400));
     }

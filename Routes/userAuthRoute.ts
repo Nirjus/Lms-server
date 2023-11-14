@@ -8,7 +8,7 @@ userAuthRouter.post("/login", logIn);
 
 userAuthRouter.get("/logout", isLogin,logOut);
 
-userAuthRouter.get("/refreshtoken", updateAccessToken );
+// userAuthRouter.get("/refreshtoken", updateAccessToken );
 
 userAuthRouter.post("/social-auth", socialAuth);
 

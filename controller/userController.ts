@@ -292,16 +292,18 @@ export const getAllUsers = async (req: Request, res: Response, next: NextFunctio
 //  update user --Role --> admin
 interface IUpdateRole{
     id: string,
+    email: string,
     role: string,
 }
 export const updateUserRole = async (req: Request, res: Response, next: NextFunction) => {
 
     try {
-        const {id, role} = req.body as IUpdateRole;
-        const user = await User.findByIdAndUpdate(id,{role:role},{new: true});
-        if(!user){
+        const {email,role} = req.body as IUpdateRole;
+        const userExist = await User.findOne({email: email});
+        if(!userExist){
             return next(new ErrorHandler("User not found with this Id",400));
         }
+        const user = await User.findOneAndUpdate({email:email},{role:role},{new:true});
 
         res.status(201).json({
             success: true,

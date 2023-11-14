@@ -56,22 +56,33 @@ export const editLayout = async (req: Request, res:Response, next: NextFunction)
         const {type} = req.body;
         
         if(type === "Banner"){
-            const bannerdata:any = await LayoutModel.findOne({type:"Banner"});
+            const bannerdata = await LayoutModel.findOne({type:"Banner"}) as any;
             const {image, title, subtitle} = req.body;
-            if(bannerdata){
-            await cloudinary.v2.uploader.destroy(bannerdata.image.public_id);
-            }
+            let banner = {image,title,subtitle};
+            if(image){
+                if(image.startsWith("https")){
+                    banner.image ={
+                        public_id: bannerdata.banner.image.public_id,
+                        url: bannerdata.banner.image.url
+                    }
+                }else{
+            await cloudinary.v2.uploader.destroy(bannerdata?.banner.image.public_id);
             const myCloud = await cloudinary.v2.uploader.upload(image,{
                 folder:"lmsCloude",
-            })
-            const banner ={
-                image: {
+            })    
+            banner.image = {
                     public_id: myCloud.public_id,
                     url: myCloud.secure_url,
-                },
-                title,
-                subtitle,
             }
+        }
+        }
+           if(title){
+            banner.title = title;
+           }
+             if(subtitle){
+                banner.subtitle = subtitle;
+             }
+            
             await LayoutModel.findByIdAndUpdate(bannerdata.id,{
                 type:type,
                 banner:banner
@@ -104,7 +115,7 @@ export const editLayout = async (req: Request, res:Response, next: NextFunction)
 //  get alyout by type 
 export const getLayout = async (req: Request,res: Response, next: NextFunction) => {
     try {
-        const type = req.body.type;
+        const {type} = req.params;
         const layout = await LayoutModel.findOne({type:type});
         if(!layout){
             return next(new ErrorHandler("Type not found",400));

@@ -135,12 +135,7 @@ export const updateAccessToken = async (req: Request, res: Response, next:NextFu
 
         await redis.set(user._id ,JSON.stringify(user), "EX", 604800); // 7 day
 
-       res.status(200).json({
-        success: true,
-        message: "accesstoken created successfully",
-        accessToken,
-       })
-
+        return next();
     } catch (error: any) {
         return next(new ErrorHandler(error.message,400));
     }
