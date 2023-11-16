@@ -416,8 +416,9 @@ export const deleteCourse = async (req: Request, res: Response, next: NextFuncti
       if(!course){
         return next(new ErrorHandler("Course not found with this Id",400));
       }
-      if(course.thumbnail){
-        const imageData:any = course.thumbnail;
+      const imageData:any = course.thumbnail;
+      if(imageData.public_id){
+
         await cloudinary.v2.uploader.destroy(imageData.public_id);
       }
         await course.deleteOne();
