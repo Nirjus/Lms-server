@@ -33,3 +33,8 @@ export const cloudinaryApiSecret = process.env.CLOUDINARY_API_SECRET || "";
 export const cloudinaryName = process.env.CLOUDINARY_CLOUD_NAME || "";
 
 export const videoCyperAPISecret = process.env.VIDEOCIPER_API_SECRET || "";
+
+export const stripePublishKey = process.env.STRIPE_PUBLISHABLE_KEY || "";
+
+export const stripeScret = process.env.STRIPE_SECRET_KEY || "";
+

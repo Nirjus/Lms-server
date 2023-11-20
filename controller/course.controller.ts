@@ -86,6 +86,12 @@ export const editCourse = async (
       { new: true }
     );
 
+    const isCatchExist = await redis.get(courseId);
+    if(isCatchExist){
+      await redis.set(courseId, JSON.stringify(course), "EX",604800); // 7days
+
+    }
+
     res.status(201).json({
       success: true,
       message: "course updated successfully",
@@ -259,6 +265,8 @@ export const addAnswer = async (
     const newAnswer: any = {
       user: (req as CustomRequest).user,
       answer,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
     //  add this answer to our course content
     question.questionReplies?.push(newAnswer);
@@ -346,12 +354,16 @@ export const addReview = async (
       course.ratings = avg / course.reviews.length;
     }
     await course?.save();
-    const notification = {
-      title: "New Review Received",
-      message: `${(req as CustomRequest).user?.name} has given a review in ${
-        course?.name
-      }`,
-    };
+
+      await redis.set(courseId, JSON.stringify(course), "EX", 604800); // 7days
+
+      await Notification.create({
+        userId: (req as CustomRequest).user?._id,
+        title: "New Review Received",
+        message: `${(req as CustomRequest).user?.name} has given a review in ${
+          course?.name
+        }`,
+        })
 
     res.status(200).json({
       success: true,
@@ -385,6 +397,8 @@ export const addReplyToReview = async (req: Request, res:Response, next: NextFun
       const replyData: any ={
         user: (req as CustomRequest).user,
         comment,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       }
       if(!review.commentReplies){
         review.commentReplies = [];
@@ -392,6 +406,8 @@ export const addReplyToReview = async (req: Request, res:Response, next: NextFun
      review.commentReplies?.push(replyData);
 
       await course?.save();
+      await redis.set(courseId, JSON.stringify(course), "EX", 604800); // 7days
+
       res.status(200).json({
         success: true,
         course

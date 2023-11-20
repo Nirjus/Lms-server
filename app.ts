@@ -13,6 +13,7 @@ import orderRouter from "./Routes/order.route";
 import notificationRouter from "./Routes/notification.route";
 import analyticsRouter from "./Routes/analytics.route";
 import layoutRouter from "./Routes/layout.route";
+import paymentRoute from "./Routes/payment.route";
 
 //body parser 
 app.use(express.json({ limit: "50mb" }));
@@ -34,6 +35,7 @@ app.use("/api/v1/order",orderRouter);
 app.use("/api/v1/notification",notificationRouter);
 app.use("/api/v1/analytic", analyticsRouter);
 app.use("/api/v1/layout", layoutRouter);
+app.use("/api/v1/payment", paymentRoute);
 
 // testing api root
 app.get("/test", (req: Request, res: Response) => {

@@ -10,6 +10,9 @@ import ErrorHandler from "../utils/errorHandeler";
 import { CustomRequest } from "../@types/custom";
 import { allOrders, newOrder } from "../services/orderService";
 import { sendMail } from "../helper/sendEmail";
+import { stripeScret } from "../secret/secret";
+import { redis } from "../utils/redis";
+const stripe = require("stripe")(stripeScret);
 
 // create order
 export const createOrder = async (
@@ -19,6 +22,20 @@ export const createOrder = async (
 ) => {
   try {
     const { courseId, payment_info } = req.body as IOrder;
+
+    if(payment_info){
+      if("id" in payment_info){
+        const paymentIntentId = payment_info.id;
+        const paymentIntent = await stripe.paymentIntents.retrieve(
+          paymentIntentId
+        );
+
+        if(paymentIntent.status !== "succeeded"){
+          return next(new ErrorHandler("Payment not authorised", 400));
+        }
+      }
+    }
+
     const user = await User.findById((req as CustomRequest).user?._id);
 
     const courseExists = user?.courses.some(
@@ -72,7 +89,7 @@ export const createOrder = async (
     }
     
     user?.courses.push(course?._id);
-
+    await redis.set(user?._id, JSON.stringify(user));
     await user?.save();
     await Notification.create({
       userId: user?._id,
