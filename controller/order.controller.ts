@@ -3,7 +3,7 @@ import express, { Response, Request, NextFunction } from "express";
 import Order, { IOrder } from "../model/orderModel";
 import User from "../model/userModel";
 import Notification from "../model/notificationModel";
-import Course from "../model/courseModel";
+import Course, { Icourse } from "../model/courseModel";
 import path from "path";
 import ejs from "ejs";
 import ErrorHandler from "../utils/errorHandeler";
@@ -47,7 +47,7 @@ export const createOrder = async (
         new ErrorHandler("You have already parchesed this course", 400)
       );
     }
-    const course = await Course.findById(courseId);
+    const course:Icourse | null = await Course.findById(courseId);
     if (!course) {
       return next(new ErrorHandler("Course not found", 400));
     }
@@ -96,8 +96,8 @@ export const createOrder = async (
       title: "New Order",
       message: `You have a new order from ${course?.name}`,
     });
-    course.purchased !=undefined ? course.purchased+=1: course.purchased;
-    
+    course.purchased = course.purchased + 1;
+    await redis.set(courseId, JSON.stringify(course), "EX", 604800); // 7days
     await course.save();
    await newOrder(data, res, next);
   } catch (error: any) {

@@ -33,7 +33,7 @@ interface ICourseData extends Document{
     questions: IComment[];
 }
 
-interface Icourse extends Document{
+export interface Icourse extends Document{
     name: string;
     description?:string;
     category: string;
@@ -48,7 +48,7 @@ interface Icourse extends Document{
     reviews: IReview[];
     courseData: ICourseData[];
     ratings: number;
-    purchased?: number;
+    purchased: number;
 }
 
 const reviewSchema: Schema<IReview> = new mongoose.Schema({
