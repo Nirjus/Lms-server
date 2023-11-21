@@ -2,10 +2,16 @@
   "name": "server",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
+  "main": "build/server.js",
+  "type": "commonjs",
+  "engines": {
+    "node": "18.x"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon server.ts"
+    "dev": "nodemon server.ts",
+    "start": "node build/server.js",
+    "build":"tsc"
   },
   "author": "Nirjus Karmakar",
   "license": "ISC",
