@@ -24,18 +24,16 @@ exports.accessTokenOptions = {
     expires: new Date(Date.now() + 5 * 60 * 1000),
     maxAge: 5 * 60 * 1000,
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "none",
+    secure: true,
 };
 exports.refreshTokenOptions = {
     expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     maxAge: 7 * 24 * 60 * 60 * 1000,
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "none",
+    secure: true,
 };
-// only true for production mode
-if (secret_1.nodeENV === "production") {
-    exports.accessTokenOptions.secure = true;
-}
 const logIn = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { email, password } = req.body;
@@ -54,10 +52,6 @@ const logIn = (req, res, next) => __awaiter(void 0, void 0, void 0, function* ()
         redis_1.redis.set(user._id, JSON.stringify(user));
         const accessToken = (0, jsonwebtoken_2.default)("5m", user, secret_1.accessKey);
         const refreshToken = (0, jsonwebtoken_2.default)("7d", user, secret_1.refreshKey);
-        // only true for production mode
-        if (secret_1.nodeENV === "production") {
-            exports.accessTokenOptions.secure = true;
-        }
         res.cookie("access_token", accessToken, exports.accessTokenOptions);
         res.cookie("refresh_token", refreshToken, exports.refreshTokenOptions);
         res.status(200).json({

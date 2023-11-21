@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALASKA Account Activation</title>
+    <style>
+        /* Global Styles */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 0;
+            font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        p {
+            color: #666;
+        }
+        /* Header Styles */
+        .header {
+            background-color: #00f5b7;
+            padding: 20px 0;
+            text-align: center;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+          .header > h1{
+            color: white;
+          }
+        /* Button Styles */
+        .btn {
+            display: inline-block;
+            background-color: #e3ecf5;
+            color: #060505;
+            font-weight: 600;
+            font-size: 18px;
+            padding: 12px 25px;
+            border: 2px dashed rgb(147, 147, 222);
+            border-radius: 5px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+       
+        /* Footer Styles */
+        .footer {
+            background-color: #333;
+            padding: 20px 0;
+            text-align: center;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+        .footer > p{
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 400;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Welcome to ALASKA!</h1>
+        </div>
+        <div class="content" style="padding: 20px;">
+            <p>Thank you for signing up <%= user.name %>. To activate your account, please use the below code:</p>
+            <h2 class="btn"><%= activationCode %></h2>
+            <p>Please enter the code to activate your account. This code will deactivate after 5 minutes</p>
+           
+            <p>If you did not create an account, please ignore this email.</p>
+        </div>
+        <div class="footer">
+            <p>Best regards,<br>Our Website Team</p>
+            <p>If you have any quary please contact us <a href="karmakarnirjus4839@gmail.com">karmakarnirjus4839@gmail.com</a></p>
+        </div>
+    </div>
+</body>
+</html>

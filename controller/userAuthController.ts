@@ -23,20 +23,18 @@ export const accessTokenOptions: ITokenOptions = {
     expires: new Date(Date.now() + 5 * 60 * 1000),  // 5 min
     maxAge: 5 * 60 * 1000,
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "none",
+    secure: true,
 };
 
 export const refreshTokenOptions: ITokenOptions = {
     expires: new Date(Date.now() + 7*24*60*60*1000),   // 1 hr.
     maxAge: 7*24*60*60*1000,
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "none",
+    secure: true,
 };
 
-// only true for production mode
-if (nodeENV === "production") {
-    accessTokenOptions.secure = true;
-}
 
 export const logIn = async (
     req: Request,
@@ -60,19 +58,11 @@ export const logIn = async (
         if (!comparePassword) {
             return next(new ErrorHandler("Password did not matched", 400));
         }
-
         //  upload session to redis
         redis.set(user._id, JSON.stringify(user) as any);
 
-
         const accessToken = createJWT_token("5m", user, accessKey);
         const refreshToken = createJWT_token("7d", user, refreshKey);
-
-
-        // only true for production mode
-        if (nodeENV === "production") {
-            accessTokenOptions.secure = true;
-        }
 
         res.cookie("access_token", accessToken, accessTokenOptions);
         res.cookie("refresh_token", refreshToken, refreshTokenOptions);
