@@ -26,6 +26,9 @@ const userSchema = new mongoose_1.default.Schema({
         },
         unique: true,
     },
+    socialAvatar: {
+        type: String,
+    },
     password: {
         type: String,
         minlength: [6, "password atlist 6 character long"],
@@ -48,6 +51,11 @@ const userSchema = new mongoose_1.default.Schema({
         {
             courceId: String,
         },
+    ],
+    createItems: [
+        {
+            courseId: String,
+        }
     ],
 }, { timestamps: true });
 const User = mongoose_1.default.model("user", userSchema);

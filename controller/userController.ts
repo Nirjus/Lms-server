@@ -281,6 +281,21 @@ export const resetPassoword = async (req: Request, res: Response, next: NextFunc
         return next(new ErrorHandler(error.message,400));
     }
 }
+
+export const allCreaters = async (req: Request, res: Response, next: NextFunction) => {
+
+    try {
+        const users = await User.find({role: "admin"});
+
+        res.status(201).json({
+            success: true,
+            users
+        })
+        
+    } catch (error: any) {
+        return next(new ErrorHandler(error.message,400));
+    }
+}
 //  get all users only for --> Admin
 export const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
     try {

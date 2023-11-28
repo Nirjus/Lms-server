@@ -146,7 +146,7 @@ export const socialAuth = async (req: Request, res: Response, next: NextFunction
             const newUser = await User.create({
                 email:email,
                 name:name,
-                avatar:avatar,
+                socialAvatar: avatar,
             })
             //  upload session to redis
         redis.set(newUser._id, JSON.stringify(newUser) as any);

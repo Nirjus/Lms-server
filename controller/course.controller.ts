@@ -12,6 +12,7 @@ import Notification from "../model/notificationModel";
 import { AllCourses } from "../services/courseService";
 import axios from "axios";
 import { videoCyperAPISecret } from "../secret/secret";
+import User from "../model/userModel";
 //  upload course
 export const uploadCourse = async (
   req: Request,
@@ -34,7 +35,22 @@ export const uploadCourse = async (
     }
 
     const course = await Course.create(data);
+    
+    const user = await User.findById((req as CustomRequest).user?._id);
+    const courseExists = user?.createItems.some(
+      (courseId:any) => courseId._id.toString() === course._id
+    )
 
+    if(courseExists){
+      return next(new ErrorHandler("This course is already created by you!",500));
+    }
+
+     user?.createItems.push({
+        courseId: course._id,
+     });
+     await redis.set(user?._id, JSON.stringify(user));
+     await user?.save();
+     
     res.status(201).json({
       success: true,
       message: "Course created successfully",

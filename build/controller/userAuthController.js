@@ -118,7 +118,7 @@ const socialAuth = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
             const newUser = yield userModel_1.default.create({
                 email: email,
                 name: name,
-                avatar: avatar,
+                socialAvatar: avatar,
             });
             //  upload session to redis
             redis_1.redis.set(newUser._id, JSON.stringify(newUser));

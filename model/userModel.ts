@@ -6,6 +6,7 @@ export interface IUser extends Document {
   name: string;
   email: string;
   password: string;
+  socialAvatar?: string;
   avatar: {
     public_id: string;
     url: string;
@@ -13,6 +14,7 @@ export interface IUser extends Document {
   role: string;
   isVarified: boolean;
   courses: Array<{ courseId: string }>;
+  createItems: Array<{ courseId: string }>;
 }
 
 const userSchema: Schema<IUser> = new mongoose.Schema(
@@ -36,6 +38,9 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
       },
       unique: true,
     },
+    socialAvatar:{
+      type: String,
+    },
     password: {
       type: String,
       minlength: [6, "password atlist 6 character long"],
@@ -58,6 +63,11 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
       {
         courceId: String,
       },
+    ],
+    createItems: [
+      {
+        courseId: String,
+      }
     ],
   },
   { timestamps: true }

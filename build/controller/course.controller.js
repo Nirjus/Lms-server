@@ -25,8 +25,10 @@ const notificationModel_1 = __importDefault(require("../model/notificationModel"
 const courseService_1 = require("../services/courseService");
 const axios_1 = __importDefault(require("axios"));
 const secret_1 = require("../secret/secret");
+const userModel_1 = __importDefault(require("../model/userModel"));
 //  upload course
 const uploadCourse = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
         const data = req.body;
         const thumbnail = data.thumbnail;
@@ -40,6 +42,16 @@ const uploadCourse = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
             };
         }
         const course = yield courseModel_1.default.create(data);
+        const user = yield userModel_1.default.findById((_a = req.user) === null || _a === void 0 ? void 0 : _a._id);
+        const courseExists = user === null || user === void 0 ? void 0 : user.createItems.some((courseId) => courseId._id.toString() === course._id);
+        if (courseExists) {
+            return next(new errorHandeler_1.default("This course is already created by you!", 500));
+        }
+        user === null || user === void 0 ? void 0 : user.createItems.push({
+            courseId: course._id,
+        });
+        yield redis_1.redis.set(user === null || user === void 0 ? void 0 : user._id, JSON.stringify(user));
+        yield (user === null || user === void 0 ? void 0 : user.save());
         res.status(201).json({
             success: true,
             message: "Course created successfully",
@@ -134,9 +146,9 @@ const getAllCourse = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
 exports.getAllCourse = getAllCourse;
 //  get courases -- only after parchese
 const getCourseByUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _b;
     try {
-        const userCourseList = (_a = req.user) === null || _a === void 0 ? void 0 : _a.courses;
+        const userCourseList = (_b = req.user) === null || _b === void 0 ? void 0 : _b.courses;
         const courseId = req.params.id;
         const courseExists = userCourseList === null || userCourseList === void 0 ? void 0 : userCourseList.find((course) => course._id.toString() === courseId);
         if (!courseExists) {
@@ -155,7 +167,7 @@ const getCourseByUser = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
 });
 exports.getCourseByUser = getCourseByUser;
 const addQuestion = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _b;
+    var _c;
     try {
         const { question, courseId, contentId } = req.body;
         const course = yield courseModel_1.default.findById(courseId);
@@ -175,7 +187,7 @@ const addQuestion = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
         //  add this question to our qourse content
         courseContent.questions.push(newQuestion);
         yield notificationModel_1.default.create({
-            userId: (_b = req.user) === null || _b === void 0 ? void 0 : _b._id,
+            userId: (_c = req.user) === null || _c === void 0 ? void 0 : _c._id,
             title: "New Question received",
             message: `You have a new question in ${courseContent === null || courseContent === void 0 ? void 0 : courseContent.title}`,
         });
@@ -192,18 +204,18 @@ const addQuestion = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
 });
 exports.addQuestion = addQuestion;
 const addAnswer = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _c, _d, _e, _f, _g, _h;
+    var _d, _e, _f, _g, _h, _j;
     try {
         const { answer, courseId, contentId, questionId } = req.body;
         const course = yield courseModel_1.default.findById(courseId);
         if (!mongoose_1.default.Types.ObjectId.isValid(contentId)) {
             return next(new errorHandeler_1.default("Invalid content ID", 400));
         }
-        const courseContent = (_c = course === null || course === void 0 ? void 0 : course.courseData) === null || _c === void 0 ? void 0 : _c.find((item) => item._id.equals(contentId));
+        const courseContent = (_d = course === null || course === void 0 ? void 0 : course.courseData) === null || _d === void 0 ? void 0 : _d.find((item) => item._id.equals(contentId));
         if (!courseContent) {
             return next(new errorHandeler_1.default("Invalid content ID", 400));
         }
-        const question = (_d = courseContent === null || courseContent === void 0 ? void 0 : courseContent.questions) === null || _d === void 0 ? void 0 : _d.find((item) => item._id.equals(questionId));
+        const question = (_e = courseContent === null || courseContent === void 0 ? void 0 : courseContent.questions) === null || _e === void 0 ? void 0 : _e.find((item) => item._id.equals(questionId));
         if (!question) {
             return next(new errorHandeler_1.default("Invalid question id", 400));
         }
@@ -215,12 +227,12 @@ const addAnswer = (req, res, next) => __awaiter(void 0, void 0, void 0, function
             updatedAt: new Date().toISOString(),
         };
         //  add this answer to our course content
-        (_e = question.questionReplies) === null || _e === void 0 ? void 0 : _e.push(newAnswer);
+        (_f = question.questionReplies) === null || _f === void 0 ? void 0 : _f.push(newAnswer);
         yield (course === null || course === void 0 ? void 0 : course.save());
-        if (((_f = req.user) === null || _f === void 0 ? void 0 : _f._id) === ((_g = question.user) === null || _g === void 0 ? void 0 : _g._id)) {
+        if (((_g = req.user) === null || _g === void 0 ? void 0 : _g._id) === ((_h = question.user) === null || _h === void 0 ? void 0 : _h._id)) {
             //  create a notification
             yield notificationModel_1.default.create({
-                userId: (_h = req.user) === null || _h === void 0 ? void 0 : _h._id,
+                userId: (_j = req.user) === null || _j === void 0 ? void 0 : _j._id,
                 title: "New reply recived",
                 message: `You have a new reply in ${courseContent === null || courseContent === void 0 ? void 0 : courseContent.title}`
             });
@@ -255,9 +267,9 @@ const addAnswer = (req, res, next) => __awaiter(void 0, void 0, void 0, function
 });
 exports.addAnswer = addAnswer;
 const addReview = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _j, _k, _l;
+    var _k, _l, _m;
     try {
-        const userCourseList = (_j = req.user) === null || _j === void 0 ? void 0 : _j.courses;
+        const userCourseList = (_k = req.user) === null || _k === void 0 ? void 0 : _k.courses;
         const courseId = req.params.id;
         // check if course exist? in user course list
         const courseExists = userCourseList === null || userCourseList === void 0 ? void 0 : userCourseList.some((course) => course._id.toString() === courseId);
@@ -282,9 +294,9 @@ const addReview = (req, res, next) => __awaiter(void 0, void 0, void 0, function
         yield (course === null || course === void 0 ? void 0 : course.save());
         yield redis_1.redis.set(courseId, JSON.stringify(course), "EX", 604800); // 7days
         yield notificationModel_1.default.create({
-            userId: (_k = req.user) === null || _k === void 0 ? void 0 : _k._id,
+            userId: (_l = req.user) === null || _l === void 0 ? void 0 : _l._id,
             title: "New Review Received",
-            message: `${(_l = req.user) === null || _l === void 0 ? void 0 : _l.name} has given a review in ${course === null || course === void 0 ? void 0 : course.name}`,
+            message: `${(_m = req.user) === null || _m === void 0 ? void 0 : _m.name} has given a review in ${course === null || course === void 0 ? void 0 : course.name}`,
         });
         res.status(200).json({
             success: true,
@@ -297,14 +309,14 @@ const addReview = (req, res, next) => __awaiter(void 0, void 0, void 0, function
 });
 exports.addReview = addReview;
 const addReplyToReview = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _m, _o;
+    var _o, _p;
     try {
         const { comment, courseId, reviewId } = req.body;
         const course = yield courseModel_1.default.findById(courseId);
         if (!course) {
             return next(new errorHandeler_1.default("Course not found", 400));
         }
-        const review = (_m = course === null || course === void 0 ? void 0 : course.reviews) === null || _m === void 0 ? void 0 : _m.find((rev) => rev._id.toString() === reviewId);
+        const review = (_o = course === null || course === void 0 ? void 0 : course.reviews) === null || _o === void 0 ? void 0 : _o.find((rev) => rev._id.toString() === reviewId);
         if (!review) {
             return next(new errorHandeler_1.default("Review not found", 400));
         }
@@ -317,7 +329,7 @@ const addReplyToReview = (req, res, next) => __awaiter(void 0, void 0, void 0, f
         if (!review.commentReplies) {
             review.commentReplies = [];
         }
-        (_o = review.commentReplies) === null || _o === void 0 ? void 0 : _o.push(replyData);
+        (_p = review.commentReplies) === null || _p === void 0 ? void 0 : _p.push(replyData);
         yield (course === null || course === void 0 ? void 0 : course.save());
         yield redis_1.redis.set(courseId, JSON.stringify(course), "EX", 604800); // 7days
         res.status(200).json({

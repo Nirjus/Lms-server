@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteUser = exports.updateUserRole = exports.getAllUsers = exports.resetPassoword = exports.forgetPassword = exports.updatePassword = exports.updateUser = exports.getUserInfo = exports.activateUser = exports.registrationUser = void 0;
+exports.deleteUser = exports.updateUserRole = exports.getAllUsers = exports.allCreaters = exports.resetPassoword = exports.forgetPassword = exports.updatePassword = exports.updateUser = exports.getUserInfo = exports.activateUser = exports.registrationUser = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const userModel_1 = __importDefault(require("../model/userModel"));
 const ejs_1 = __importDefault(require("ejs"));
@@ -224,6 +224,19 @@ const resetPassoword = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
     }
 });
 exports.resetPassoword = resetPassoword;
+const allCreaters = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const users = yield userModel_1.default.find({ role: "admin" });
+        res.status(201).json({
+            success: true,
+            users
+        });
+    }
+    catch (error) {
+        return next(new errorHandeler_1.default(error.message, 400));
+    }
+});
+exports.allCreaters = allCreaters;
 //  get all users only for --> Admin
 const getAllUsers = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {

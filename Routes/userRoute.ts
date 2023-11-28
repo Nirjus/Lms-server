@@ -1,5 +1,5 @@
 import express from "express";
-import { activateUser, deleteUser, forgetPassword, getAllUsers, getUserInfo, registrationUser, resetPassoword, updatePassword, updateUser, updateUserRole } from "../controller/userController";
+import { activateUser, allCreaters, deleteUser, forgetPassword, getAllUsers, getUserInfo, registrationUser, resetPassoword, updatePassword, updateUser, updateUserRole } from "../controller/userController";
 import { isLogin, validateRole } from "../middleware/userAuth";
 
 const userRouter = express.Router();
@@ -14,6 +14,8 @@ userRouter.put("/update-password", isLogin, updatePassword);
 
 userRouter.post("/forgot-password", forgetPassword);
 userRouter.post("/reset-password", resetPassoword);
+
+userRouter.get("/get-all-creaters", allCreaters);
 
 userRouter.get("/get-all-users", isLogin, validateRole("admin"), getAllUsers);
 userRouter.put("/update-user-role", isLogin, validateRole("admin"), updateUserRole);

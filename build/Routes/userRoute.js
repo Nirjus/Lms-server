@@ -14,6 +14,7 @@ userRouter.put("/update-user", userAuth_1.isLogin, userController_1.updateUser);
 userRouter.put("/update-password", userAuth_1.isLogin, userController_1.updatePassword);
 userRouter.post("/forgot-password", userController_1.forgetPassword);
 userRouter.post("/reset-password", userController_1.resetPassoword);
+userRouter.get("/get-all-creaters", userController_1.allCreaters);
 userRouter.get("/get-all-users", userAuth_1.isLogin, (0, userAuth_1.validateRole)("admin"), userController_1.getAllUsers);
 userRouter.put("/update-user-role", userAuth_1.isLogin, (0, userAuth_1.validateRole)("admin"), userController_1.updateUserRole);
 userRouter.delete("/delete-user/:id", userAuth_1.isLogin, (0, userAuth_1.validateRole)("admin"), userController_1.deleteUser);
