@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.stripeScret = exports.stripePublishKey = exports.videoCyperAPISecret = exports.cloudinaryName = exports.cloudinaryApiSecret = exports.cloudinaryApiKey = exports.accessKey = exports.refreshKey = exports.smtpPassword = exports.smtpUserName = exports.jwtResetPassKey = exports.jwtActivationKey = exports.redisUrl = exports.nodeENV = exports.frontendUrl = exports.mongoUri = exports.port = void 0;
+exports.stripeScret = exports.stripePublishKey = exports.cloudinaryName = exports.cloudinaryApiSecret = exports.cloudinaryApiKey = exports.accessKey = exports.refreshKey = exports.smtpPassword = exports.smtpUserName = exports.jwtResetPassKey = exports.jwtActivationKey = exports.redisUrl = exports.nodeENV = exports.frontendUrl = exports.mongoUri = exports.port = void 0;
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config({
     path: "./secret/.env"
@@ -22,6 +22,5 @@ exports.accessKey = process.env.ACCESS_KEY || "DGShfd5345%#%@$FDfxgd35";
 exports.cloudinaryApiKey = process.env.CLOUDINARY_API_KEY || "";
 exports.cloudinaryApiSecret = process.env.CLOUDINARY_API_SECRET || "";
 exports.cloudinaryName = process.env.CLOUDINARY_CLOUD_NAME || "";
-exports.videoCyperAPISecret = process.env.VIDEOCIPER_API_SECRET || "";
 exports.stripePublishKey = process.env.STRIPE_PUBLISHABLE_KEY || "";
 exports.stripeScret = process.env.STRIPE_SECRET_KEY || "";

@@ -10,8 +10,6 @@ import path from "path";
 import { sendMail } from "../helper/sendEmail";
 import Notification from "../model/notificationModel";
 import { AllCourses } from "../services/courseService";
-import axios from "axios";
-import { videoCyperAPISecret } from "../secret/secret";
 import User from "../model/userModel";
 //  upload course
 export const uploadCourse = async (
@@ -22,7 +20,7 @@ export const uploadCourse = async (
   try {
     const data = req.body;
     const thumbnail = data.thumbnail;
-
+    const demoUrl = data?.demoUrl;
     if (thumbnail) {
       const myCloud = await cloudinary.v2.uploader.upload(thumbnail, {
         folder: "lmsCloude",
@@ -33,24 +31,47 @@ export const uploadCourse = async (
         url: myCloud.secure_url,
       };
     }
+    if (demoUrl) {
+      const myCloud = await cloudinary.v2.uploader.upload(demoUrl, {
+        folder: "lmsCloude",
+        resource_type: "video"
+      });
 
-    const course = await Course.create(data);
-    
-    const user = await User.findById((req as CustomRequest).user?._id);
-    const courseExists = user?.createItems.some(
-      (courseId:any) => courseId._id.toString() === course._id
-    )
-
-    if(courseExists){
-      return next(new ErrorHandler("This course is already created by you!",500));
+      data.demoUrl = {
+        public_id: myCloud.public_id,
+        url: myCloud.secure_url,
+      };
     }
 
-     user?.createItems.push({
-        courseId: course._id,
-     });
-     await redis.set(user?._id, JSON.stringify(user));
-     await user?.save();
-     
+    for (let i = 0; i < data?.courseData?.length; i++) {
+      const videoUrl = data?.courseData[i].videoUrl;
+      const myCloud = await cloudinary.v2.uploader.upload(videoUrl, {
+        folder: "lmsCloude",
+        resource_type: "video"
+      });
+      data.courseData[i].videoUrl = {
+        public_id: myCloud.public_id,
+        url: myCloud.secure_url,
+      }
+    }
+
+    const course = await Course.create(data);
+
+    const user = await User.findById((req as CustomRequest).user?._id);
+    const courseExists = user?.createItems.some(
+      (courseId: any) => courseId._id.toString() === course._id
+    )
+
+    if (courseExists) {
+      return next(new ErrorHandler("This course is already created by you!", 500));
+    }
+
+    user?.createItems.push({
+      courseId: course._id,
+    });
+    await redis.set(user?._id, JSON.stringify(user));
+    await user?.save();
+
     res.status(201).json({
       success: true,
       message: "Course created successfully",
@@ -69,14 +90,16 @@ export const editCourse = async (
 ) => {
   try {
     const data = req.body;
-    const thumbnail = data.thumbnail;
-   
+    const thumbnail = data.thumbnail as string;
+    const demoUrl = data?.demoUrl as string;
     const courseId = req.params.id;
 
-    const courseData = await Course.findById(courseId) as any;
+    const courseData = await Course.findById(courseId);
 
     if (thumbnail && !thumbnail.startsWith("https")) {
-      await cloudinary.v2.uploader.destroy(courseData.thumbnail.public_id);
+      if (courseData?.thumbnail.public_id) {
+        await cloudinary.v2.uploader.destroy(courseData.thumbnail.public_id);
+      }
       const myClode = await cloudinary.v2.uploader.upload(thumbnail, {
         folder: "lmsCloude",
       });
@@ -87,13 +110,58 @@ export const editCourse = async (
       };
     }
 
-     if(thumbnail.startsWith("https")){
-        data.thumbnail = {
-          public_id: courseData?.thumbnail.public_id,
-          url: courseData?.thumbnail.url,
-        }
-     }   
+    if (thumbnail.startsWith("https")) {
+      data.thumbnail = {
+        public_id: courseData?.thumbnail.public_id,
+        url: courseData?.thumbnail.url,
+      }
+    }
+    if (demoUrl && !demoUrl.startsWith("https")) {
+      if (courseData?.demoUrl.public_id) {
+        await cloudinary.v2.uploader.destroy(courseData.demoUrl.public_id, {
+          resource_type: "video"
+        });
+      }
+      const myClode = await cloudinary.v2.uploader.upload(demoUrl, {
+        folder: "lmsCloude",
+        resource_type: "video"
+      });
 
+      data.demoUrl = {
+        public_id: myClode.public_id,
+        url: myClode.secure_url,
+      };
+    }
+    if (demoUrl.startsWith("https")) {
+      data.demoUrl = {
+        public_id: courseData?.demoUrl?.public_id,
+        url: courseData?.demoUrl?.url
+      }
+    }
+    for (let i = 0; i < data?.courseData?.length; i++) {
+      const videoUrl = data?.courseData[i]?.videoUrl as string;
+      if (videoUrl && !videoUrl.startsWith("https")) {
+        if (courseData?.courseData[i].videoUrl.public_id) {
+          await cloudinary.v2.uploader.destroy(courseData?.courseData[i].videoUrl.public_id, {
+            resource_type: "video"
+          });
+        }
+        const myClode = await cloudinary.v2.uploader.upload(videoUrl, {
+          folder: "lmsCloude",
+          resource_type: "video"
+        });
+        data.courseData[i].videoUrl = {
+          public_id: myClode.public_id,
+          url: myClode.secure_url
+        }
+      }
+      if (videoUrl.startsWith("https")) {
+        data.courseData[i].videoUrl = {
+          public_id: courseData?.courseData[i].videoUrl.public_id,
+          url: courseData?.courseData[i].videoUrl.url
+        }
+      }
+    }
     const course = await Course.findByIdAndUpdate(
       courseId,
       {
@@ -103,8 +171,8 @@ export const editCourse = async (
     );
 
     const isCatchExist = await redis.get(courseId);
-    if(isCatchExist){
-      await redis.set(courseId, JSON.stringify(course), "EX",604800); // 7days
+    if (isCatchExist) {
+      await redis.set(courseId, JSON.stringify(course), "EX", 604800); // 7days
 
     }
 
@@ -137,7 +205,7 @@ export const getSingleCourse = async (
       const course = await Course.findById(req.params.id).select(
         "-courseData.videoUrl -courseData.links -courseData.questions -courseData.suggestion"
       );
-      await redis.set(courseId, JSON.stringify(course), "EX",604800); // 7days
+      await redis.set(courseId, JSON.stringify(course), "EX", 604800); // 7days
       res.status(200).json({
         success: true,
         course,
@@ -154,15 +222,15 @@ export const getAllCourse = async (
   next: NextFunction
 ) => {
   try {
-  
-      const courses = await Course.find().select(
-        "-courseData.videoUrl -courseData.links -courseData.questions -courseData.suggestion"
-      );
 
-      res.status(200).json({
-        success: true,
-        courses,
-      });
+    const courses = await Course.find().select(
+      "-courseData.videoUrl -courseData.links -courseData.questions -courseData.suggestion"
+    );
+
+    res.status(200).json({
+      success: true,
+      courses,
+    });
 
   } catch (error: any) {
     return next(new ErrorHandler(error.message, 500));
@@ -291,7 +359,7 @@ export const addAnswer = async (
     if ((req as CustomRequest).user?._id === question.user?._id) {
       //  create a notification
       await Notification.create({
-      userId: (req as CustomRequest).user?._id,
+        userId: (req as CustomRequest).user?._id,
         title: "New reply recived",
         message: `You have a new reply in ${courseContent?.title}`
       })
@@ -371,15 +439,14 @@ export const addReview = async (
     }
     await course?.save();
 
-      await redis.set(courseId, JSON.stringify(course), "EX", 604800); // 7days
+    await redis.set(courseId, JSON.stringify(course), "EX", 604800); // 7days
 
-      await Notification.create({
-        userId: (req as CustomRequest).user?._id,
-        title: "New Review Received",
-        message: `${(req as CustomRequest).user?.name} has given a review in ${
-          course?.name
+    await Notification.create({
+      userId: (req as CustomRequest).user?._id,
+      title: "New Review Received",
+      message: `${(req as CustomRequest).user?.name} has given a review in ${course?.name
         }`,
-        })
+    })
 
     res.status(200).json({
       success: true,
@@ -391,96 +458,89 @@ export const addReview = async (
 };
 
 //   add reply to review
-interface IAddReplyReviewData{
+interface IAddReplyReviewData {
   comment: string,
   courseId: string,
   reviewId: string,
 }
-export const addReplyToReview = async (req: Request, res:Response, next: NextFunction) => {
+export const addReplyToReview = async (req: Request, res: Response, next: NextFunction) => {
 
   try {
-      const {comment, courseId, reviewId} = req.body as IAddReplyReviewData;
+    const { comment, courseId, reviewId } = req.body as IAddReplyReviewData;
 
-      const course = await Course.findById(courseId);
-      if(!course){
-        return next(new ErrorHandler("Course not found",400));
-      }
-      const review = course?.reviews?.find((rev: any) => rev._id.toString() === reviewId);
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return next(new ErrorHandler("Course not found", 400));
+    }
+    const review = course?.reviews?.find((rev: any) => rev._id.toString() === reviewId);
 
-      if(!review){
-        return next(new ErrorHandler("Review not found", 400));
-      }
-      const replyData: any ={
-        user: (req as CustomRequest).user,
-        comment,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      }
-      if(!review.commentReplies){
-        review.commentReplies = [];
-      }
-     review.commentReplies?.push(replyData);
+    if (!review) {
+      return next(new ErrorHandler("Review not found", 400));
+    }
+    const replyData: any = {
+      user: (req as CustomRequest).user,
+      comment,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+    if (!review.commentReplies) {
+      review.commentReplies = [];
+    }
+    review.commentReplies?.push(replyData);
 
-      await course?.save();
-      await redis.set(courseId, JSON.stringify(course), "EX", 604800); // 7days
+    await course?.save();
+    await redis.set(courseId, JSON.stringify(course), "EX", 604800); // 7days
 
-      res.status(200).json({
-        success: true,
-        course
-      })
+    res.status(200).json({
+      success: true,
+      course
+    })
   } catch (error: any) {
-    return next(new ErrorHandler(error.message,500));
+    return next(new ErrorHandler(error.message, 500));
   }
-} 
+}
 //  get all courses only for --> Admin
 export const getAllCourses = async (req: Request, res: Response, next: NextFunction) => {
   try {
     await AllCourses(res);
   } catch (error: any) {
-      return next(new ErrorHandler(error.message,500));
+    return next(new ErrorHandler(error.message, 500));
   }
 }
 // delete course --Admin
 export const deleteCourse = async (req: Request, res: Response, next: NextFunction) => {
   try {
-      const {id} = req.params;
-      const course = await Course.findById(id);
-      if(!course){
-        return next(new ErrorHandler("Course not found with this Id",400));
+    const { id } = req.params;
+    const course = await Course.findById(id);
+    if (!course) {
+      return next(new ErrorHandler("Course not found with this Id", 400));
+    }
+    const imageData: any = course.thumbnail;
+    if (imageData.public_id) {
+      await cloudinary.v2.uploader.destroy(imageData.public_id);
+    }
+    const demoUrl = course?.demoUrl;
+    if (demoUrl.public_id) {
+      await cloudinary.v2.uploader.destroy(demoUrl?.public_id, {
+        resource_type: "video"
+      });
+    }
+    for (let i = 0; i < course?.courseData?.length; i++) {
+      if (course.courseData[i].videoUrl?.public_id) {
+        await cloudinary.v2.uploader.destroy(course.courseData[i].videoUrl?.public_id, {
+          resource_type: "video"
+        })
       }
-      const imageData:any = course.thumbnail;
-      if(imageData.public_id){
+    }
+    await course.deleteOne();
 
-        await cloudinary.v2.uploader.destroy(imageData.public_id);
-      }
-        await course.deleteOne();
+    await redis.del(id);
 
-      await redis.del(id);
-      
-      res.status(200).json({
-        success: true,
-        message: "Course deleted successfully!",
-      })
+    res.status(200).json({
+      success: true,
+      message: "Course deleted successfully!",
+    })
   } catch (error: any) {
-    return next(new ErrorHandler(error.message,500));
-  }
-}
-
-//  generate video url
-export const generateVideoUrl = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const {videoId} = req.body;
-    const response = await axios.post(`https://dev.vdocipher.com/api/videos/${videoId}/otp`,{ttl: 300},{
-      headers:{
-        Accept: "application/json",
-        "Content-Type":"application/json",
-        Authorization: `Apisecret ${videoCyperAPISecret}`,
-      },
-    });
-
-    res.status(201).json(response.data);
-  } catch (error: any) {
-    return next(new ErrorHandler(error.message,500));
-    
+    return next(new ErrorHandler(error.message, 500));
   }
 }

@@ -1,4 +1,4 @@
-import mongoose, { Model, Schema,Document } from "mongoose";
+import mongoose, { Model, Schema, Document } from "mongoose";
 import bcrypt from "bcryptjs";
 const emailRegexp: RegExp = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 
@@ -30,22 +30,22 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
       type: String,
       required: [true, "Please enter your email"],
       trim: true,
-      validate:{
-        validator: function(v:string){
+      validate: {
+        validator: function (v: string) {
           return emailRegexp.test(v);
         },
-        message:"Plase enter your passoword",
+        message: "Plase enter your passoword",
       },
       unique: true,
     },
-    socialAvatar:{
+    socialAvatar: {
       type: String,
     },
     password: {
       type: String,
       minlength: [6, "password atlist 6 character long"],
-      set:(v:string) => bcrypt.hashSync(v,bcrypt.genSaltSync(10)),
-      select:false,
+      set: (v: string) => bcrypt.hashSync(v, bcrypt.genSaltSync(10)),
+      select: false,
     },
     avatar: {
       public_id: String,

@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateVideoUrl = exports.deleteCourse = exports.getAllCourses = exports.addReplyToReview = exports.addReview = exports.addAnswer = exports.addQuestion = exports.getCourseByUser = exports.getAllCourse = exports.getSingleCourse = exports.editCourse = exports.uploadCourse = void 0;
+exports.deleteCourse = exports.getAllCourses = exports.addReplyToReview = exports.addReview = exports.addAnswer = exports.addQuestion = exports.getCourseByUser = exports.getAllCourse = exports.getSingleCourse = exports.editCourse = exports.uploadCourse = void 0;
 const errorHandeler_1 = __importDefault(require("../utils/errorHandeler"));
 const cloudinary_1 = __importDefault(require("cloudinary"));
 const courseModel_1 = __importDefault(require("../model/courseModel"));
@@ -23,15 +23,14 @@ const path_1 = __importDefault(require("path"));
 const sendEmail_1 = require("../helper/sendEmail");
 const notificationModel_1 = __importDefault(require("../model/notificationModel"));
 const courseService_1 = require("../services/courseService");
-const axios_1 = __importDefault(require("axios"));
-const secret_1 = require("../secret/secret");
 const userModel_1 = __importDefault(require("../model/userModel"));
 //  upload course
 const uploadCourse = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _a, _b;
     try {
         const data = req.body;
         const thumbnail = data.thumbnail;
+        const demoUrl = data === null || data === void 0 ? void 0 : data.demoUrl;
         if (thumbnail) {
             const myCloud = yield cloudinary_1.default.v2.uploader.upload(thumbnail, {
                 folder: "lmsCloude",
@@ -41,8 +40,29 @@ const uploadCourse = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
                 url: myCloud.secure_url,
             };
         }
+        if (demoUrl) {
+            const myCloud = yield cloudinary_1.default.v2.uploader.upload(demoUrl, {
+                folder: "lmsCloude",
+                resource_type: "video"
+            });
+            data.demoUrl = {
+                public_id: myCloud.public_id,
+                url: myCloud.secure_url,
+            };
+        }
+        for (let i = 0; i < ((_a = data === null || data === void 0 ? void 0 : data.courseData) === null || _a === void 0 ? void 0 : _a.length); i++) {
+            const videoUrl = data === null || data === void 0 ? void 0 : data.courseData[i].videoUrl;
+            const myCloud = yield cloudinary_1.default.v2.uploader.upload(videoUrl, {
+                folder: "lmsCloude",
+                resource_type: "video"
+            });
+            data.courseData[i].videoUrl = {
+                public_id: myCloud.public_id,
+                url: myCloud.secure_url,
+            };
+        }
         const course = yield courseModel_1.default.create(data);
-        const user = yield userModel_1.default.findById((_a = req.user) === null || _a === void 0 ? void 0 : _a._id);
+        const user = yield userModel_1.default.findById((_b = req.user) === null || _b === void 0 ? void 0 : _b._id);
         const courseExists = user === null || user === void 0 ? void 0 : user.createItems.some((courseId) => courseId._id.toString() === course._id);
         if (courseExists) {
             return next(new errorHandeler_1.default("This course is already created by you!", 500));
@@ -65,13 +85,17 @@ const uploadCourse = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
 exports.uploadCourse = uploadCourse;
 // edit course
 const editCourse = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _c, _d, _e, _f;
     try {
         const data = req.body;
         const thumbnail = data.thumbnail;
+        const demoUrl = data === null || data === void 0 ? void 0 : data.demoUrl;
         const courseId = req.params.id;
         const courseData = yield courseModel_1.default.findById(courseId);
         if (thumbnail && !thumbnail.startsWith("https")) {
-            yield cloudinary_1.default.v2.uploader.destroy(courseData.thumbnail.public_id);
+            if (courseData === null || courseData === void 0 ? void 0 : courseData.thumbnail.public_id) {
+                yield cloudinary_1.default.v2.uploader.destroy(courseData.thumbnail.public_id);
+            }
             const myClode = yield cloudinary_1.default.v2.uploader.upload(thumbnail, {
                 folder: "lmsCloude",
             });
@@ -85,6 +109,51 @@ const editCourse = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
                 public_id: courseData === null || courseData === void 0 ? void 0 : courseData.thumbnail.public_id,
                 url: courseData === null || courseData === void 0 ? void 0 : courseData.thumbnail.url,
             };
+        }
+        if (demoUrl && !demoUrl.startsWith("https")) {
+            if (courseData === null || courseData === void 0 ? void 0 : courseData.demoUrl.public_id) {
+                yield cloudinary_1.default.v2.uploader.destroy(courseData.demoUrl.public_id, {
+                    resource_type: "video"
+                });
+            }
+            const myClode = yield cloudinary_1.default.v2.uploader.upload(demoUrl, {
+                folder: "lmsCloude",
+                resource_type: "video"
+            });
+            data.demoUrl = {
+                public_id: myClode.public_id,
+                url: myClode.secure_url,
+            };
+        }
+        if (demoUrl.startsWith("https")) {
+            data.demoUrl = {
+                public_id: (_c = courseData === null || courseData === void 0 ? void 0 : courseData.demoUrl) === null || _c === void 0 ? void 0 : _c.public_id,
+                url: (_d = courseData === null || courseData === void 0 ? void 0 : courseData.demoUrl) === null || _d === void 0 ? void 0 : _d.url
+            };
+        }
+        for (let i = 0; i < ((_e = data === null || data === void 0 ? void 0 : data.courseData) === null || _e === void 0 ? void 0 : _e.length); i++) {
+            const videoUrl = (_f = data === null || data === void 0 ? void 0 : data.courseData[i]) === null || _f === void 0 ? void 0 : _f.videoUrl;
+            if (videoUrl && !videoUrl.startsWith("https")) {
+                if (courseData === null || courseData === void 0 ? void 0 : courseData.courseData[i].videoUrl.public_id) {
+                    yield cloudinary_1.default.v2.uploader.destroy(courseData === null || courseData === void 0 ? void 0 : courseData.courseData[i].videoUrl.public_id, {
+                        resource_type: "video"
+                    });
+                }
+                const myClode = yield cloudinary_1.default.v2.uploader.upload(videoUrl, {
+                    folder: "lmsCloude",
+                    resource_type: "video"
+                });
+                data.courseData[i].videoUrl = {
+                    public_id: myClode.public_id,
+                    url: myClode.secure_url
+                };
+            }
+            if (videoUrl.startsWith("https")) {
+                data.courseData[i].videoUrl = {
+                    public_id: courseData === null || courseData === void 0 ? void 0 : courseData.courseData[i].videoUrl.public_id,
+                    url: courseData === null || courseData === void 0 ? void 0 : courseData.courseData[i].videoUrl.url
+                };
+            }
         }
         const course = yield courseModel_1.default.findByIdAndUpdate(courseId, {
             $set: data,
@@ -146,9 +215,9 @@ const getAllCourse = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
 exports.getAllCourse = getAllCourse;
 //  get courases -- only after parchese
 const getCourseByUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _b;
+    var _g;
     try {
-        const userCourseList = (_b = req.user) === null || _b === void 0 ? void 0 : _b.courses;
+        const userCourseList = (_g = req.user) === null || _g === void 0 ? void 0 : _g.courses;
         const courseId = req.params.id;
         const courseExists = userCourseList === null || userCourseList === void 0 ? void 0 : userCourseList.find((course) => course._id.toString() === courseId);
         if (!courseExists) {
@@ -167,7 +236,7 @@ const getCourseByUser = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
 });
 exports.getCourseByUser = getCourseByUser;
 const addQuestion = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _c;
+    var _h;
     try {
         const { question, courseId, contentId } = req.body;
         const course = yield courseModel_1.default.findById(courseId);
@@ -187,7 +256,7 @@ const addQuestion = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
         //  add this question to our qourse content
         courseContent.questions.push(newQuestion);
         yield notificationModel_1.default.create({
-            userId: (_c = req.user) === null || _c === void 0 ? void 0 : _c._id,
+            userId: (_h = req.user) === null || _h === void 0 ? void 0 : _h._id,
             title: "New Question received",
             message: `You have a new question in ${courseContent === null || courseContent === void 0 ? void 0 : courseContent.title}`,
         });
@@ -204,18 +273,18 @@ const addQuestion = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
 });
 exports.addQuestion = addQuestion;
 const addAnswer = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _d, _e, _f, _g, _h, _j;
+    var _j, _k, _l, _m, _o, _p;
     try {
         const { answer, courseId, contentId, questionId } = req.body;
         const course = yield courseModel_1.default.findById(courseId);
         if (!mongoose_1.default.Types.ObjectId.isValid(contentId)) {
             return next(new errorHandeler_1.default("Invalid content ID", 400));
         }
-        const courseContent = (_d = course === null || course === void 0 ? void 0 : course.courseData) === null || _d === void 0 ? void 0 : _d.find((item) => item._id.equals(contentId));
+        const courseContent = (_j = course === null || course === void 0 ? void 0 : course.courseData) === null || _j === void 0 ? void 0 : _j.find((item) => item._id.equals(contentId));
         if (!courseContent) {
             return next(new errorHandeler_1.default("Invalid content ID", 400));
         }
-        const question = (_e = courseContent === null || courseContent === void 0 ? void 0 : courseContent.questions) === null || _e === void 0 ? void 0 : _e.find((item) => item._id.equals(questionId));
+        const question = (_k = courseContent === null || courseContent === void 0 ? void 0 : courseContent.questions) === null || _k === void 0 ? void 0 : _k.find((item) => item._id.equals(questionId));
         if (!question) {
             return next(new errorHandeler_1.default("Invalid question id", 400));
         }
@@ -227,12 +296,12 @@ const addAnswer = (req, res, next) => __awaiter(void 0, void 0, void 0, function
             updatedAt: new Date().toISOString(),
         };
         //  add this answer to our course content
-        (_f = question.questionReplies) === null || _f === void 0 ? void 0 : _f.push(newAnswer);
+        (_l = question.questionReplies) === null || _l === void 0 ? void 0 : _l.push(newAnswer);
         yield (course === null || course === void 0 ? void 0 : course.save());
-        if (((_g = req.user) === null || _g === void 0 ? void 0 : _g._id) === ((_h = question.user) === null || _h === void 0 ? void 0 : _h._id)) {
+        if (((_m = req.user) === null || _m === void 0 ? void 0 : _m._id) === ((_o = question.user) === null || _o === void 0 ? void 0 : _o._id)) {
             //  create a notification
             yield notificationModel_1.default.create({
-                userId: (_j = req.user) === null || _j === void 0 ? void 0 : _j._id,
+                userId: (_p = req.user) === null || _p === void 0 ? void 0 : _p._id,
                 title: "New reply recived",
                 message: `You have a new reply in ${courseContent === null || courseContent === void 0 ? void 0 : courseContent.title}`
             });
@@ -267,9 +336,9 @@ const addAnswer = (req, res, next) => __awaiter(void 0, void 0, void 0, function
 });
 exports.addAnswer = addAnswer;
 const addReview = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _k, _l, _m;
+    var _q, _r, _s;
     try {
-        const userCourseList = (_k = req.user) === null || _k === void 0 ? void 0 : _k.courses;
+        const userCourseList = (_q = req.user) === null || _q === void 0 ? void 0 : _q.courses;
         const courseId = req.params.id;
         // check if course exist? in user course list
         const courseExists = userCourseList === null || userCourseList === void 0 ? void 0 : userCourseList.some((course) => course._id.toString() === courseId);
@@ -294,9 +363,9 @@ const addReview = (req, res, next) => __awaiter(void 0, void 0, void 0, function
         yield (course === null || course === void 0 ? void 0 : course.save());
         yield redis_1.redis.set(courseId, JSON.stringify(course), "EX", 604800); // 7days
         yield notificationModel_1.default.create({
-            userId: (_l = req.user) === null || _l === void 0 ? void 0 : _l._id,
+            userId: (_r = req.user) === null || _r === void 0 ? void 0 : _r._id,
             title: "New Review Received",
-            message: `${(_m = req.user) === null || _m === void 0 ? void 0 : _m.name} has given a review in ${course === null || course === void 0 ? void 0 : course.name}`,
+            message: `${(_s = req.user) === null || _s === void 0 ? void 0 : _s.name} has given a review in ${course === null || course === void 0 ? void 0 : course.name}`,
         });
         res.status(200).json({
             success: true,
@@ -309,14 +378,14 @@ const addReview = (req, res, next) => __awaiter(void 0, void 0, void 0, function
 });
 exports.addReview = addReview;
 const addReplyToReview = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _o, _p;
+    var _t, _u;
     try {
         const { comment, courseId, reviewId } = req.body;
         const course = yield courseModel_1.default.findById(courseId);
         if (!course) {
             return next(new errorHandeler_1.default("Course not found", 400));
         }
-        const review = (_o = course === null || course === void 0 ? void 0 : course.reviews) === null || _o === void 0 ? void 0 : _o.find((rev) => rev._id.toString() === reviewId);
+        const review = (_t = course === null || course === void 0 ? void 0 : course.reviews) === null || _t === void 0 ? void 0 : _t.find((rev) => rev._id.toString() === reviewId);
         if (!review) {
             return next(new errorHandeler_1.default("Review not found", 400));
         }
@@ -329,7 +398,7 @@ const addReplyToReview = (req, res, next) => __awaiter(void 0, void 0, void 0, f
         if (!review.commentReplies) {
             review.commentReplies = [];
         }
-        (_p = review.commentReplies) === null || _p === void 0 ? void 0 : _p.push(replyData);
+        (_u = review.commentReplies) === null || _u === void 0 ? void 0 : _u.push(replyData);
         yield (course === null || course === void 0 ? void 0 : course.save());
         yield redis_1.redis.set(courseId, JSON.stringify(course), "EX", 604800); // 7days
         res.status(200).json({
@@ -354,6 +423,7 @@ const getAllCourses = (req, res, next) => __awaiter(void 0, void 0, void 0, func
 exports.getAllCourses = getAllCourses;
 // delete course --Admin
 const deleteCourse = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _v, _w, _x;
     try {
         const { id } = req.params;
         const course = yield courseModel_1.default.findById(id);
@@ -363,6 +433,19 @@ const deleteCourse = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         const imageData = course.thumbnail;
         if (imageData.public_id) {
             yield cloudinary_1.default.v2.uploader.destroy(imageData.public_id);
+        }
+        const demoUrl = course === null || course === void 0 ? void 0 : course.demoUrl;
+        if (demoUrl.public_id) {
+            yield cloudinary_1.default.v2.uploader.destroy(demoUrl === null || demoUrl === void 0 ? void 0 : demoUrl.public_id, {
+                resource_type: "video"
+            });
+        }
+        for (let i = 0; i < ((_v = course === null || course === void 0 ? void 0 : course.courseData) === null || _v === void 0 ? void 0 : _v.length); i++) {
+            if ((_w = course.courseData[i].videoUrl) === null || _w === void 0 ? void 0 : _w.public_id) {
+                yield cloudinary_1.default.v2.uploader.destroy((_x = course.courseData[i].videoUrl) === null || _x === void 0 ? void 0 : _x.public_id, {
+                    resource_type: "video"
+                });
+            }
         }
         yield course.deleteOne();
         yield redis_1.redis.del(id);
@@ -376,21 +459,3 @@ const deleteCourse = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
     }
 });
 exports.deleteCourse = deleteCourse;
-//  generate video url
-const generateVideoUrl = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const { videoId } = req.body;
-        const response = yield axios_1.default.post(`https://dev.vdocipher.com/api/videos/${videoId}/otp`, { ttl: 300 }, {
-            headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json",
-                Authorization: `Apisecret ${secret_1.videoCyperAPISecret}`,
-            },
-        });
-        res.status(201).json(response.data);
-    }
-    catch (error) {
-        return next(new errorHandeler_1.default(error.message, 500));
-    }
-});
-exports.generateVideoUrl = generateVideoUrl;

@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 
 dotenv.config({
-    path:"./secret/.env"
+    path: "./secret/.env"
 });
 
 export const port = process.env.PORT || 6000;
@@ -31,8 +31,6 @@ export const cloudinaryApiKey = process.env.CLOUDINARY_API_KEY || "";
 export const cloudinaryApiSecret = process.env.CLOUDINARY_API_SECRET || "";
 
 export const cloudinaryName = process.env.CLOUDINARY_CLOUD_NAME || "";
-
-export const videoCyperAPISecret = process.env.VIDEOCIPER_API_SECRET || "";
 
 export const stripePublishKey = process.env.STRIPE_PUBLISHABLE_KEY || "";
 

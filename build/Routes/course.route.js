@@ -17,6 +17,5 @@ courseRouter.put("/add-answer", userAuth_1.isLogin, course_controller_1.addAnswe
 courseRouter.put("/add-review/:id", userAuth_1.isLogin, course_controller_1.addReview);
 courseRouter.put("/add-reply", userAuth_1.isLogin, (0, userAuth_1.validateRole)("admin"), course_controller_1.addReplyToReview);
 courseRouter.get("/get-all-courses", userAuth_1.isLogin, (0, userAuth_1.validateRole)("admin"), course_controller_1.getAllCourses);
-courseRouter.post("/getVdoCipherOTP", course_controller_1.generateVideoUrl);
 courseRouter.delete("/delete-course/:id", userAuth_1.isLogin, (0, userAuth_1.validateRole)("admin"), course_controller_1.deleteCourse);
 exports.default = courseRouter;

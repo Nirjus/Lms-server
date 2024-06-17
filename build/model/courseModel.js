@@ -43,7 +43,14 @@ const commentsSchema = new mongoose_1.Schema({
     questionReplies: [Object],
 }, { timestamps: true });
 const courseDataSchema = new mongoose_1.Schema({
-    videoUrl: String,
+    videoUrl: {
+        public_id: {
+            type: String,
+        },
+        url: {
+            type: String,
+        },
+    },
     videoThumbnail: Object,
     title: String,
     videoSection: String,
@@ -91,8 +98,12 @@ const courseSchema = new mongoose_1.default.Schema({
         required: true,
     },
     demoUrl: {
-        type: String,
-        required: true,
+        public_id: {
+            type: String,
+        },
+        url: {
+            type: String,
+        },
     },
     benefits: [{ title: String }],
     prerequisites: [{ title: String }],
