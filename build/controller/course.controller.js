@@ -43,7 +43,7 @@ const uploadCourse = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         if (demoUrl) {
             const myCloud = yield cloudinary_1.default.v2.uploader.upload(demoUrl, {
                 folder: "lmsCloude",
-                resource_type: "video"
+                resource_type: "video",
             });
             data.demoUrl = {
                 public_id: myCloud.public_id,
@@ -54,7 +54,7 @@ const uploadCourse = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
             const videoUrl = data === null || data === void 0 ? void 0 : data.courseData[i].videoUrl;
             const myCloud = yield cloudinary_1.default.v2.uploader.upload(videoUrl, {
                 folder: "lmsCloude",
-                resource_type: "video"
+                resource_type: "video",
             });
             data.courseData[i].videoUrl = {
                 public_id: myCloud.public_id,
@@ -113,12 +113,12 @@ const editCourse = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
         if (demoUrl && !demoUrl.startsWith("https")) {
             if (courseData === null || courseData === void 0 ? void 0 : courseData.demoUrl.public_id) {
                 yield cloudinary_1.default.v2.uploader.destroy(courseData.demoUrl.public_id, {
-                    resource_type: "video"
+                    resource_type: "video",
                 });
             }
             const myClode = yield cloudinary_1.default.v2.uploader.upload(demoUrl, {
                 folder: "lmsCloude",
-                resource_type: "video"
+                resource_type: "video",
             });
             data.demoUrl = {
                 public_id: myClode.public_id,
@@ -128,7 +128,7 @@ const editCourse = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
         if (demoUrl.startsWith("https")) {
             data.demoUrl = {
                 public_id: (_c = courseData === null || courseData === void 0 ? void 0 : courseData.demoUrl) === null || _c === void 0 ? void 0 : _c.public_id,
-                url: (_d = courseData === null || courseData === void 0 ? void 0 : courseData.demoUrl) === null || _d === void 0 ? void 0 : _d.url
+                url: (_d = courseData === null || courseData === void 0 ? void 0 : courseData.demoUrl) === null || _d === void 0 ? void 0 : _d.url,
             };
         }
         for (let i = 0; i < ((_e = data === null || data === void 0 ? void 0 : data.courseData) === null || _e === void 0 ? void 0 : _e.length); i++) {
@@ -136,22 +136,22 @@ const editCourse = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
             if (videoUrl && !videoUrl.startsWith("https")) {
                 if (courseData === null || courseData === void 0 ? void 0 : courseData.courseData[i].videoUrl.public_id) {
                     yield cloudinary_1.default.v2.uploader.destroy(courseData === null || courseData === void 0 ? void 0 : courseData.courseData[i].videoUrl.public_id, {
-                        resource_type: "video"
+                        resource_type: "video",
                     });
                 }
                 const myClode = yield cloudinary_1.default.v2.uploader.upload(videoUrl, {
                     folder: "lmsCloude",
-                    resource_type: "video"
+                    resource_type: "video",
                 });
                 data.courseData[i].videoUrl = {
                     public_id: myClode.public_id,
-                    url: myClode.secure_url
+                    url: myClode.secure_url,
                 };
             }
             if (videoUrl.startsWith("https")) {
                 data.courseData[i].videoUrl = {
                     public_id: courseData === null || courseData === void 0 ? void 0 : courseData.courseData[i].videoUrl.public_id,
-                    url: courseData === null || courseData === void 0 ? void 0 : courseData.courseData[i].videoUrl.url
+                    url: courseData === null || courseData === void 0 ? void 0 : courseData.courseData[i].videoUrl.url,
                 };
             }
         }
@@ -303,7 +303,7 @@ const addAnswer = (req, res, next) => __awaiter(void 0, void 0, void 0, function
             yield notificationModel_1.default.create({
                 userId: (_p = req.user) === null || _p === void 0 ? void 0 : _p._id,
                 title: "New reply recived",
-                message: `You have a new reply in ${courseContent === null || courseContent === void 0 ? void 0 : courseContent.title}`
+                message: `You have a new reply in ${courseContent === null || courseContent === void 0 ? void 0 : courseContent.title}`,
             });
         }
         else {
@@ -403,7 +403,7 @@ const addReplyToReview = (req, res, next) => __awaiter(void 0, void 0, void 0, f
         yield redis_1.redis.set(courseId, JSON.stringify(course), "EX", 604800); // 7days
         res.status(200).json({
             success: true,
-            course
+            course,
         });
     }
     catch (error) {
@@ -437,13 +437,13 @@ const deleteCourse = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         const demoUrl = course === null || course === void 0 ? void 0 : course.demoUrl;
         if (demoUrl.public_id) {
             yield cloudinary_1.default.v2.uploader.destroy(demoUrl === null || demoUrl === void 0 ? void 0 : demoUrl.public_id, {
-                resource_type: "video"
+                resource_type: "video",
             });
         }
         for (let i = 0; i < ((_v = course === null || course === void 0 ? void 0 : course.courseData) === null || _v === void 0 ? void 0 : _v.length); i++) {
             if ((_w = course.courseData[i].videoUrl) === null || _w === void 0 ? void 0 : _w.public_id) {
                 yield cloudinary_1.default.v2.uploader.destroy((_x = course.courseData[i].videoUrl) === null || _x === void 0 ? void 0 : _x.public_id, {
-                    resource_type: "video"
+                    resource_type: "video",
                 });
             }
         }
