@@ -34,7 +34,7 @@ export const uploadCourse = async (
     if (demoUrl) {
       const myCloud = await cloudinary.v2.uploader.upload(demoUrl, {
         folder: "lmsCloude",
-        resource_type: "video"
+        resource_type: "video",
       });
 
       data.demoUrl = {
@@ -47,12 +47,12 @@ export const uploadCourse = async (
       const videoUrl = data?.courseData[i].videoUrl;
       const myCloud = await cloudinary.v2.uploader.upload(videoUrl, {
         folder: "lmsCloude",
-        resource_type: "video"
+        resource_type: "video",
       });
       data.courseData[i].videoUrl = {
         public_id: myCloud.public_id,
         url: myCloud.secure_url,
-      }
+      };
     }
 
     const course = await Course.create(data);
@@ -60,10 +60,12 @@ export const uploadCourse = async (
     const user = await User.findById((req as CustomRequest).user?._id);
     const courseExists = user?.createItems.some(
       (courseId: any) => courseId._id.toString() === course._id
-    )
+    );
 
     if (courseExists) {
-      return next(new ErrorHandler("This course is already created by you!", 500));
+      return next(
+        new ErrorHandler("This course is already created by you!", 500)
+      );
     }
 
     user?.createItems.push({
@@ -114,17 +116,17 @@ export const editCourse = async (
       data.thumbnail = {
         public_id: courseData?.thumbnail.public_id,
         url: courseData?.thumbnail.url,
-      }
+      };
     }
     if (demoUrl && !demoUrl.startsWith("https")) {
       if (courseData?.demoUrl.public_id) {
         await cloudinary.v2.uploader.destroy(courseData.demoUrl.public_id, {
-          resource_type: "video"
+          resource_type: "video",
         });
       }
       const myClode = await cloudinary.v2.uploader.upload(demoUrl, {
         folder: "lmsCloude",
-        resource_type: "video"
+        resource_type: "video",
       });
 
       data.demoUrl = {
@@ -135,31 +137,34 @@ export const editCourse = async (
     if (demoUrl.startsWith("https")) {
       data.demoUrl = {
         public_id: courseData?.demoUrl?.public_id,
-        url: courseData?.demoUrl?.url
-      }
+        url: courseData?.demoUrl?.url,
+      };
     }
     for (let i = 0; i < data?.courseData?.length; i++) {
       const videoUrl = data?.courseData[i]?.videoUrl as string;
       if (videoUrl && !videoUrl.startsWith("https")) {
         if (courseData?.courseData[i].videoUrl.public_id) {
-          await cloudinary.v2.uploader.destroy(courseData?.courseData[i].videoUrl.public_id, {
-            resource_type: "video"
-          });
+          await cloudinary.v2.uploader.destroy(
+            courseData?.courseData[i].videoUrl.public_id,
+            {
+              resource_type: "video",
+            }
+          );
         }
         const myClode = await cloudinary.v2.uploader.upload(videoUrl, {
           folder: "lmsCloude",
-          resource_type: "video"
+          resource_type: "video",
         });
         data.courseData[i].videoUrl = {
           public_id: myClode.public_id,
-          url: myClode.secure_url
-        }
+          url: myClode.secure_url,
+        };
       }
       if (videoUrl.startsWith("https")) {
         data.courseData[i].videoUrl = {
           public_id: courseData?.courseData[i].videoUrl.public_id,
-          url: courseData?.courseData[i].videoUrl.url
-        }
+          url: courseData?.courseData[i].videoUrl.url,
+        };
       }
     }
     const course = await Course.findByIdAndUpdate(
@@ -173,7 +178,6 @@ export const editCourse = async (
     const isCatchExist = await redis.get(courseId);
     if (isCatchExist) {
       await redis.set(courseId, JSON.stringify(course), "EX", 604800); // 7days
-
     }
 
     res.status(201).json({
@@ -222,7 +226,6 @@ export const getAllCourse = async (
   next: NextFunction
 ) => {
   try {
-
     const courses = await Course.find().select(
       "-courseData.videoUrl -courseData.links -courseData.questions -courseData.suggestion"
     );
@@ -231,7 +234,6 @@ export const getAllCourse = async (
       success: true,
       courses,
     });
-
   } catch (error: any) {
     return next(new ErrorHandler(error.message, 500));
   }
@@ -300,7 +302,7 @@ export const addQuestion = async (
       userId: (req as CustomRequest).user?._id,
       title: "New Question received",
       message: `You have a new question in ${courseContent?.title}`,
-    })
+    });
     // save the updated course
     await course?.save();
     res.status(200).json({
@@ -361,8 +363,8 @@ export const addAnswer = async (
       await Notification.create({
         userId: (req as CustomRequest).user?._id,
         title: "New reply recived",
-        message: `You have a new reply in ${courseContent?.title}`
-      })
+        message: `You have a new reply in ${courseContent?.title}`,
+      });
     } else {
       const data = {
         name: question.user.name,
@@ -444,9 +446,10 @@ export const addReview = async (
     await Notification.create({
       userId: (req as CustomRequest).user?._id,
       title: "New Review Received",
-      message: `${(req as CustomRequest).user?.name} has given a review in ${course?.name
-        }`,
-    })
+      message: `${(req as CustomRequest).user?.name} has given a review in ${
+        course?.name
+      }`,
+    });
 
     res.status(200).json({
       success: true,
@@ -459,12 +462,15 @@ export const addReview = async (
 
 //   add reply to review
 interface IAddReplyReviewData {
-  comment: string,
-  courseId: string,
-  reviewId: string,
+  comment: string;
+  courseId: string;
+  reviewId: string;
 }
-export const addReplyToReview = async (req: Request, res: Response, next: NextFunction) => {
-
+export const addReplyToReview = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { comment, courseId, reviewId } = req.body as IAddReplyReviewData;
 
@@ -472,7 +478,9 @@ export const addReplyToReview = async (req: Request, res: Response, next: NextFu
     if (!course) {
       return next(new ErrorHandler("Course not found", 400));
     }
-    const review = course?.reviews?.find((rev: any) => rev._id.toString() === reviewId);
+    const review = course?.reviews?.find(
+      (rev: any) => rev._id.toString() === reviewId
+    );
 
     if (!review) {
       return next(new ErrorHandler("Review not found", 400));
@@ -482,7 +490,7 @@ export const addReplyToReview = async (req: Request, res: Response, next: NextFu
       comment,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-    }
+    };
     if (!review.commentReplies) {
       review.commentReplies = [];
     }
@@ -493,22 +501,30 @@ export const addReplyToReview = async (req: Request, res: Response, next: NextFu
 
     res.status(200).json({
       success: true,
-      course
-    })
+      course,
+    });
   } catch (error: any) {
     return next(new ErrorHandler(error.message, 500));
   }
-}
+};
 //  get all courses only for --> Admin
-export const getAllCourses = async (req: Request, res: Response, next: NextFunction) => {
+export const getAllCourses = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     await AllCourses(res);
   } catch (error: any) {
     return next(new ErrorHandler(error.message, 500));
   }
-}
+};
 // delete course --Admin
-export const deleteCourse = async (req: Request, res: Response, next: NextFunction) => {
+export const deleteCourse = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { id } = req.params;
     const course = await Course.findById(id);
@@ -522,14 +538,17 @@ export const deleteCourse = async (req: Request, res: Response, next: NextFuncti
     const demoUrl = course?.demoUrl;
     if (demoUrl.public_id) {
       await cloudinary.v2.uploader.destroy(demoUrl?.public_id, {
-        resource_type: "video"
+        resource_type: "video",
       });
     }
     for (let i = 0; i < course?.courseData?.length; i++) {
       if (course.courseData[i].videoUrl?.public_id) {
-        await cloudinary.v2.uploader.destroy(course.courseData[i].videoUrl?.public_id, {
-          resource_type: "video"
-        })
+        await cloudinary.v2.uploader.destroy(
+          course.courseData[i].videoUrl?.public_id,
+          {
+            resource_type: "video",
+          }
+        );
       }
     }
     await course.deleteOne();
@@ -539,8 +558,8 @@ export const deleteCourse = async (req: Request, res: Response, next: NextFuncti
     res.status(200).json({
       success: true,
       message: "Course deleted successfully!",
-    })
+    });
   } catch (error: any) {
     return next(new ErrorHandler(error.message, 500));
   }
-}
+};
