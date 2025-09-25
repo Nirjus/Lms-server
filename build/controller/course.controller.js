@@ -13,13 +13,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteCourse = exports.getAllCourses = exports.addReplyToReview = exports.addReview = exports.addAnswer = exports.addQuestion = exports.getCourseByUser = exports.getAllCourse = exports.getSingleCourse = exports.editCourse = exports.uploadCourse = void 0;
-const errorHandeler_1 = __importDefault(require("../utils/errorHandeler"));
+const ejs_1 = __importDefault(require("ejs"));
 const cloudinary_1 = __importDefault(require("cloudinary"));
+const mongoose_1 = __importDefault(require("mongoose"));
+const path_1 = __importDefault(require("path"));
+const errorHandeler_1 = __importDefault(require("../utils/errorHandeler"));
 const courseModel_1 = __importDefault(require("../model/courseModel"));
 const redis_1 = require("../utils/redis");
-const mongoose_1 = __importDefault(require("mongoose"));
-const ejs_1 = __importDefault(require("ejs"));
-const path_1 = __importDefault(require("path"));
 const sendEmail_1 = require("../helper/sendEmail");
 const notificationModel_1 = __importDefault(require("../model/notificationModel"));
 const courseService_1 = require("../services/courseService");
@@ -177,22 +177,32 @@ exports.editCourse = editCourse;
 const getSingleCourse = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const courseId = req.params.id;
-        const isCatchExist = yield redis_1.redis.get(courseId);
-        if (isCatchExist) {
-            const course = JSON.parse(isCatchExist);
-            res.status(200).json({
-                success: true,
-                course,
-            });
+        let course;
+        try {
+            const isCatchExist = yield redis_1.redis.get(courseId);
+            if (isCatchExist) {
+                course = JSON.parse(isCatchExist);
+                return res.status(200).json({
+                    success: true,
+                    course,
+                });
+            }
         }
-        else {
-            const course = yield courseModel_1.default.findById(req.params.id).select("-courseData.videoUrl -courseData.links -courseData.questions -courseData.suggestion");
-            yield redis_1.redis.set(courseId, JSON.stringify(course), "EX", 604800); // 7days
-            res.status(200).json({
-                success: true,
-                course,
-            });
+        catch (redisError) {
+            console.warn("⚠️ Redis unavailable, skipping cache:", redisError.message);
         }
+        course = yield courseModel_1.default.findById(req.params.id).select("-courseData.videoUrl -courseData.links -courseData.questions -courseData.suggestion");
+        // try to set cache (only if redis alive)
+        try {
+            yield redis_1.redis.set(courseId, JSON.stringify(course), "EX", 604800); // 7 days
+        }
+        catch (redisErr) {
+            console.warn("⚠️ Redis set failed:", redisErr.message);
+        }
+        return res.status(200).json({
+            success: true,
+            course,
+        });
     }
     catch (error) {
         return next(new errorHandeler_1.default(error.message, 500));

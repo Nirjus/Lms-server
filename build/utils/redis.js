@@ -11,3 +11,12 @@ const redisClient = () => {
     throw new Error("Redis connection faild!");
 };
 exports.redis = new ioredis_1.Redis(redisClient());
+exports.redis.on("connect", () => {
+    console.log("✅ Redis connected");
+});
+exports.redis.on("error", (err) => {
+    console.error("❌ Redis connection error:", err.message);
+});
+exports.redis.on("end", () => {
+    console.warn("⚠️ Redis connection closed");
+});

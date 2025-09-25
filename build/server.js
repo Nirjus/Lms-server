@@ -29,23 +29,3 @@ server.listen(secret_1.port, () => __awaiter(void 0, void 0, void 0, function* (
     console.log(`server is running on http://localhost:${secret_1.port}`);
     yield (0, db_1.default)();
 }));
-function reloadWebsite() {
-    fetch(`${secret_1.backendUrl}/test`, {
-        method: "GET",
-        headers: {
-            "Content-Type": "application/json", // Example of setting headers
-        },
-    })
-        .then((response) => {
-        if (response.ok) {
-            console.log(`Reloaded at ${new Date().toISOString()}: Status Code ${response.status}`);
-        }
-        else {
-            console.error(`Failed to reload at ${new Date().toISOString()}: Status Code ${response.status}`);
-        }
-    })
-        .catch((error) => {
-        console.error(`Error reloading at ${new Date().toISOString()}:`, error.message);
-    });
-}
-setInterval(reloadWebsite, 30000);
