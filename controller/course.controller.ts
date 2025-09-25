@@ -1,12 +1,12 @@
 import { Response, Request, NextFunction } from "express";
-import ErrorHandler from "../utils/errorHandeler";
+import ejs from "ejs";
 import cloudinary from "cloudinary";
+import mongoose from "mongoose";
+import path from "path";
+import ErrorHandler from "../utils/errorHandeler";
 import Course from "../model/courseModel";
 import { redis } from "../utils/redis";
 import { CustomRequest } from "../@types/custom";
-import mongoose from "mongoose";
-import ejs from "ejs";
-import path from "path";
 import { sendMail } from "../helper/sendEmail";
 import Notification from "../model/notificationModel";
 import { AllCourses } from "../services/courseService";
@@ -197,24 +197,37 @@ export const getSingleCourse = async (
 ) => {
   try {
     const courseId = req.params.id;
-    const isCatchExist = await redis.get(courseId);
+    let course;
 
-    if (isCatchExist) {
-      const course = JSON.parse(isCatchExist);
-      res.status(200).json({
-        success: true,
-        course,
-      });
-    } else {
-      const course = await Course.findById(req.params.id).select(
-        "-courseData.videoUrl -courseData.links -courseData.questions -courseData.suggestion"
+    try {
+      const isCatchExist = await redis.get(courseId);
+      if (isCatchExist) {
+        course = JSON.parse(isCatchExist);
+        return res.status(200).json({
+          success: true,
+          course,
+        });
+      }
+    } catch (redisError) {
+      console.warn(
+        "⚠️ Redis unavailable, skipping cache:",
+        (redisError as Error).message
       );
-      await redis.set(courseId, JSON.stringify(course), "EX", 604800); // 7days
-      res.status(200).json({
-        success: true,
-        course,
-      });
     }
+
+    course = await Course.findById(req.params.id).select(
+      "-courseData.videoUrl -courseData.links -courseData.questions -courseData.suggestion"
+    );
+    // try to set cache (only if redis alive)
+    try {
+      await redis.set(courseId, JSON.stringify(course), "EX", 604800); // 7 days
+    } catch (redisErr) {
+      console.warn("⚠️ Redis set failed:", (redisErr as Error).message);
+    }
+    return res.status(200).json({
+      success: true,
+      course,
+    });
   } catch (error: any) {
     return next(new ErrorHandler(error.message, 500));
   }
